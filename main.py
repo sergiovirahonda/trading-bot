@@ -2,7 +2,6 @@
 import time
 import sys
 import asyncio
-import trace
 import traceback
 
 # App imports
@@ -144,32 +143,38 @@ async def main():
 
     if short_term_decision == SELL_SIGNAL and long_term_decision == SELL_SIGNAL:
         logger.info("Both short-term and long-term decisions indicate selling.")
-        # Find the best market opportunity
-        awl = ASSET_WATCHLIST.copy()
-        
-        # Remove the current asset from the watchlist
-        if f"{current_asset.get('current_asset')}USDT" in awl:
-            awl.remove(f"{current_asset.get('current_asset')}USDT")
+
         market_analysis = trading_app_services.analyze_markets(
-            watchlist=awl,
+            watchlist=ASSET_WATCHLIST,
         )
         logger.info(f"Market analysis: {market_analysis}")
         best_market = indicator_calculator_app_services.get_best_market_opportunity(
             market_analysis=market_analysis,
         )
         if best_market:
+            if best_market.asset == current_asset.get("current_asset"):
+                logger.info("No action taken. Current asset is the best market opportunity.")
+                return
             logger.info(f"Best market opportunity found: {best_market.asset}")
-            equivalent_volume = trading_app_services.get_equivalent_volume(
-                origin_asset=current_asset.get("current_asset"),
-                target_asset=best_market.asset,
+            # Get trading intent
+            trading_intent = trading_app_services.get_trade_intent(
+                base_asset=current_asset.get("current_asset"),
+                quote_asset=best_market.asset,
             )
+            logger.info(f"Trade intent: {trading_intent.as_dict()}")
+            # Perform calculations for placing an order
+            equivalent_volume = trading_app_services.get_equivalent_volume(
+                origin_asset=trading_intent.origin,
+                target_asset=trading_intent.quote,
+            )
+            logger.info(f"Equivalent volume calculated: {equivalent_volume}")
             current_holding_value = trading_app_services.get_current_asset_holding_value()
             current_balance = trading_app_services.get_asset_balance(
                 asset=current_asset.get("current_asset"),
             )
             order = TradingOrderFactory.create_order(
-                symbol=f"{current_asset.get('current_asset')}{best_market.asset}",
-                side=SELL_SIGNAL,
+                symbol=trading_intent.symbol,
+                side=trading_intent.side,
                 quantity=equivalent_volume,
                 usd_amount=current_holding_value,
                 profit=(best_market.price * equivalent_volume) - (entry_price * current_balance)
@@ -185,6 +190,7 @@ async def main():
             logger.info(f"Stop loss order placed: {stop_loss_order.as_dict()}")
             trading_app_services.set_current_asset("USDT", entry_price=stop_loss_order.usd_amount)
             sys.exit(0)
+
     else:
         logger.info("Market conditions not met for selling. No action taken.")
         logger.info("Trading bot stopping.")

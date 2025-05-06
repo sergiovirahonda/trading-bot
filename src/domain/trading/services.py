@@ -2,7 +2,6 @@
 import pandas as pd
 from binance.exceptions import BinanceAPIException
 from typing import Optional
-import math
 
 # App imports
 from src.adapters.exchange import Exchange
@@ -23,6 +22,11 @@ from .exceptions import (
     AssetPriceError,
 )
 from .entities import TradingOrder
+from .value_objects import (
+    TradeIntent,
+    SELL_DIRECTION,
+    BUY_DIRECTION,
+)
 
 class TradingDomainServices:
     def __init__(
@@ -34,6 +38,31 @@ class TradingDomainServices:
         self.exchange_client = exchange_client
         self.redis_client = redis_client
         self.telegram_adapter = telegram_adapter
+
+    def get_available_symbols(self) -> list:
+        return self.exchange_client.get_available_symbols()
+
+    def get_trade_intent(self, base_asset: str, quote_asset: str) -> TradeIntent:
+        available_symbols = self.get_available_symbols()
+        origin = base_asset
+        quote = quote_asset
+        if base_asset == quote_asset:
+            raise TradingError("Base asset and quote asset cannot be the same")
+        symbol = f"{base_asset}{quote_asset}"
+        direction = SELL_DIRECTION
+        if symbol not in available_symbols:
+            origin = quote_asset
+            quote = base_asset
+            symbol = f"{quote_asset}{base_asset}"
+            direction = BUY_DIRECTION
+            if symbol not in available_symbols:
+                raise TradingError(f"Symbol {symbol} not available for trading")
+        return TradeIntent(
+            origin=origin,
+            quote=quote,
+            symbol=symbol,
+            side=direction,
+        )
 
     def get_asset_balance(self, asset: str) -> float:
         """Get the balance of a specific asset"""
