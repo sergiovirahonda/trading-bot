@@ -44,3 +44,18 @@ class MarketAnalysis:
     def as_list(self):
         return [market.as_dict() for market in self.markets]
 
+@dataclass
+class TradeIntent:
+    origin: str
+    quote: str
+    symbol: str
+    side: str
+
+    def as_dict(self):
+        return {
+            'origin': self.origin,
+            'quote': self.quote,
+            'symbol': self.symbol,
+            'side': self.side,
+        }
+

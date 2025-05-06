@@ -145,7 +145,7 @@ class TradingApplicationServices:
         entry_price = current_asset.get("entry_price")
         order = TradingOrderFactory.create_order(
             symbol=f"{current_asset}USDT",
-            side="SELL",
+            side=SELL_DIRECTION,
             quantity=current_holding_value,
             usd_amount=current_holding_value,
             profit=current_holding_value - (entry_price * current_balance),

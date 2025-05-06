@@ -79,3 +79,9 @@ class Exchange:
         if not price:
             raise ValueError(f"Price not found for {symbol}")
         return float(price) if price else 0.0
+
+    def get_available_symbols(self) -> list:
+        """Get all available symbols"""
+        exchange_info = self.client.get_exchange_info()
+        symbols = [s['symbol'] for s in exchange_info['symbols']]
+        return symbols
