@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trading-bot
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: trading-bot
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: trading-bot
+    spec:
+      containers:
+      - name: trading-bot
+        image: trading-bot:latest
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/sh"]
+        args: ["-c", "sleep 10 && python main.py"]
+        envFrom:
+          - configMapRef:
+              name: trading-bot-configmap
+      restartPolicy: Always

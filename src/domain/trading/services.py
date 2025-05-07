@@ -134,7 +134,6 @@ class TradingDomainServices:
                     f"Symbol: {order.symbol}\n" +\
                     f"Side: {order.side}\n" +\
                     f"Quantity: {quantity}\n" +\
-                    f"Price: {order.price}\n" +\
                     f"USD Amount: {order.usd_amount}\n" + \
                     f"Profit: {order.profit}\n"
         await self.telegram_adapter.send_message(message)

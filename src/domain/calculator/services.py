@@ -42,8 +42,8 @@ class IndicatorCalculatorDomainServices:
         )
         current_price = close_prices.iloc[-1]
         change  = ((current_price - entry_price) / entry_price) * 100
-        # If entry price is 2% lower than the current price, take profit
-        if change > 2:
+        # If entry price is 3% lower than the current price, take profit
+        if change > 3:
             return SELL_SIGNAL
         # If entry price is 1% higher than the current price, evaluate stop loss
         elif change < -1:
@@ -58,8 +58,8 @@ class IndicatorCalculatorDomainServices:
                 return SELL_SIGNAL
             else:
                 return SELL_SIGNAL
-        # If the price is within 2% of the entry price, evaluate holding
-        elif -1 <= change < 2:
+        # If the price is within 3% of the entry price, evaluate holding
+        elif -1 <= change <= 3:
             # if trend signal is buy and trade signal is buy, hold
             if trend_signal == BUY_SIGNAL and trade_signal == BUY_SIGNAL:
                 return HOLD_SIGNAL
@@ -96,7 +96,7 @@ class IndicatorCalculatorDomainServices:
         latest_ema = indicators.ema.iloc[-1]
         if latest_rsi < 40 and close_price > latest_ema:
             return BUY_SIGNAL
-        elif latest_rsi > 60 and close_price < latest_ema:
+        elif latest_rsi > 70 and close_price < latest_ema:
             return SELL_SIGNAL
         else:
             return HOLD_SIGNAL
