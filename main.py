@@ -177,7 +177,7 @@ async def main():
                 side=trading_intent.side,
                 quantity=equivalent_volume,
                 usd_amount=current_holding_value,
-                profit=(best_market.price * equivalent_volume) - (entry_price * current_balance)
+                profit=current_holding_value - (entry_price * current_balance)
             )
             logger.info(f"Placing order: {order.as_dict()}")
             await trading_app_services.place_order(order=order)

@@ -9,6 +9,7 @@ from src.domain.trading.value_objects import (
     SELL_DIRECTION,
     MarketAnalysis,
     AssetAnalysis,
+    TradeIntent,
 )
 from src.domain.trading.services import TradingDomainServices
 from src.application.calculator.services import IndicatorCalculatorApplicationServices
@@ -140,11 +141,12 @@ class TradingApplicationServices:
         current_asset = self.get_current_asset()
         if current_asset == "USDT":
             raise ValueError("Stop loss cannot be applied to USDT.")
+        asset = current_asset.get("current_asset")
         current_holding_value = self.get_current_asset_holding_value()
-        current_balance = self.get_asset_balance(current_asset.get("current_asset"))
+        current_balance = self.get_asset_balance(asset)
         entry_price = current_asset.get("entry_price")
         order = TradingOrderFactory.create_order(
-            symbol=f"{current_asset}USDT",
+            symbol=f"{asset}USDT",
             side=SELL_DIRECTION,
             quantity=current_holding_value,
             usd_amount=current_holding_value,
@@ -153,3 +155,14 @@ class TradingApplicationServices:
         # Place the order
         await self.place_order(order)
         return order
+
+    def get_trade_intent(
+        self,
+        base_asset: str,
+        quote_asset: str,
+    ) -> TradeIntent:
+        """Get the trade intent for a specific asset"""
+        return self.trading_domain_services.get_trade_intent(
+            base_asset=base_asset,
+            quote_asset=quote_asset,
+        )
